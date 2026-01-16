@@ -3,186 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WhatsApp DARSAP Mobile</title>
+    <title>DARSAP Premium Chat & Call</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --bg-main: #0b141a; --bg-sidebar: #111b21; --bg-header: #202c33;
-            --wa-green: #00a884; --text-main: #e9edef; --text-dim: #8696a0;
-            --msg-out: #005c4b; --msg-in: #202c33;
+            --wa-bg: #0b141a; --wa-sidebar: #111b21; --wa-header: #202c33;
+            --wa-green: #00a884; --wa-msg-out: #005c4b; --wa-text: #e9edef;
+            --wa-dim: #8696a0; --accent: #00a884;
         }
 
-        body { 
-            margin: 0; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; 
-            background: var(--bg-main); color: var(--text-main); 
-            height: 100vh; display: flex; overflow: hidden; 
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--wa-bg); color: var(--wa-text); height: 100vh; overflow: hidden; }
 
-        /* --- LAYOUT UTAMA --- */
-        .container { display: flex; width: 100%; height: 100%; position: relative; }
-
-        /* --- SIDEBAR (DAFTAR KONTAK) --- */
+        /* --- LAYOUT --- */
+        .app-container { display: flex; width: 100vw; height: 100vh; position: relative; }
+        
         .sidebar { 
-            width: 30%; min-width: 300px; background: var(--bg-sidebar); 
-            border-right: 1px solid #313d45; display: flex; flex-direction: column; 
-            transition: all 0.3s ease;
+            width: 350px; background: var(--wa-sidebar); border-right: 1px solid #222d34; 
+            display: flex; flex-direction: column; transition: 0.3s;
         }
 
-        /* --- CHAT AREA --- */
-        .chat-area { 
+        .chat-main { 
             flex: 1; display: flex; flex-direction: column; 
-            background: #0b141a url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); 
-            background-blend-mode: overlay; transition: all 0.3s ease;
+            background: #0b141a url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-blend-mode: overlay; position: relative;
         }
 
-        /* TAMPILAN HP (RESPONSIVE) */
         @media (max-width: 768px) {
             .sidebar { width: 100%; position: absolute; left: 0; z-index: 5; }
-            .chat-area { width: 100%; position: absolute; left: 100%; z-index: 10; }
-            .chat-area.active { left: 0; }
+            .chat-main { width: 100%; position: absolute; left: 100%; z-index: 10; transition: 0.3s; }
+            .chat-main.active { left: 0; }
         }
 
-        /* --- KOMPONEN UI --- */
-        .header { 
-            padding: 10px 16px; background: var(--bg-header); height: 60px; 
-            display: flex; align-items: center; gap: 10px; box-sizing: border-box; 
-        }
+        /* --- UI COMPONENTS --- */
+        .header { height: 60px; background: var(--wa-header); padding: 10px 15px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #53616a; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+        
+        .btn-add { background: var(--wa-green); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        
+        .contact-item { padding: 12px 15px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #222d34; cursor: pointer; }
+        .contact-item:hover { background: #202c33; }
 
-        .back-btn { display: none; cursor: pointer; font-size: 20px; padding-right: 10px; }
-        @media (max-width: 768px) { .back-btn { display: block; } }
+        .chat-header-btns { margin-left: auto; display: flex; gap: 20px; font-size: 20px; }
+        .chat-header-btns span { cursor: pointer; padding: 5px; transition: 0.2s; }
+        .chat-header-btns span:hover { color: var(--wa-green); }
 
-        .avatar { 
-            width: 40px; height: 40px; border-radius: 50%; background: #53616a; 
-            display: flex; align-items: center; justify-content: center; font-weight: bold; 
-        }
+        .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg { max-width: 70%; padding: 8px 12px; border-radius: 8px; font-size: 14.5px; position: relative; line-height: 1.4; }
+        .msg.in { background: #202c33; align-self: flex-start; }
+        .msg.out { background: var(--wa-msg-out); align-self: flex-end; }
+        .msg-time { font-size: 10px; color: var(--wa-dim); float: right; margin-top: 5px; margin-left: 10px; }
 
-        .contact-item { 
-            padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #222d34; cursor: pointer; 
-        }
+        .input-bar { padding: 10px 15px; background: var(--wa-header); display: flex; align-items: center; gap: 10px; }
+        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
 
-        .msg-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
-        .bubble { 
-            max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 14px; line-height: 1.4; 
-            position: relative; word-wrap: break-word;
-        }
-        .in { background: var(--msg-in); align-self: flex-start; }
-        .out { background: var(--msg-out); align-self: flex-end; }
+        /* --- MODAL TAMBAH KONTAK --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; align-items: center; justify-content: center; }
+        .modal { background: var(--wa-header); padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        .modal input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #2a3942; color: white; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; border: none; cursor: pointer; }
 
-        .input-bar { padding: 10px; background: var(--bg-header); display: flex; gap: 8px; align-items: center; }
-        .input-bar input { 
-            flex: 1; padding: 12px; border-radius: 25px; border: none; 
-            background: #2a3942; color: white; outline: none; 
-        }
+        /* --- CALL SCREEN --- */
+        #callUI { position: fixed; inset: 0; background: #0b141a; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
+        #localVideo { position: absolute; top: 20px; right: 20px; width: 100px; height: 140px; border-radius: 10px; border: 2px solid white; z-index: 1100; }
+        .call-actions { position: absolute; bottom: 50px; display: flex; gap: 20px; }
+        .btn-call { width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer; font-size: 24px; color: white; }
 
-        /* --- VIDEO CALL FULLSCREEN --- */
-        #callOverlay { 
-            position: fixed; inset: 0; background: black; z-index: 9999; 
-            display: none; flex-direction: column; 
-        }
-        video#remoteVideo { width: 100%; height: 100%; object-fit: cover; }
-        video#localVideo { 
-            position: absolute; width: 30%; max-width: 120px; top: 20px; right: 20px; 
-            border-radius: 10px; border: 2px solid white; z-index: 10000; 
-        }
-        .controls { 
-            position: absolute; bottom: 30px; width: 100%; 
-            display: flex; justify-content: center; gap: 20px; 
-        }
-        .btn-round { 
-            width: 60px; height: 60px; border-radius: 50%; border: none; 
-            color: white; font-size: 24px; cursor: pointer; 
-        }
-
-        .hidden { display: none !important; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: grey; }
+        .online { background: var(--wa-green) !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="app-container">
     <div class="sidebar" id="sidebar">
         <div class="header">
-            <div id="myIdText" style="font-size: 12px; color: var(--wa-green); flex: 1;">Connecting...</div>
-            <button onclick="addFriend()" style="background:none; border:none; color:var(--wa-green); font-size:25px; cursor:pointer;">+</button>
+            <div id="myIdDisplay" style="font-size: 11px; flex: 1;">ID: ...</div>
+            <button class="btn-add" onclick="toggleModal(true)">+ Tambah</button>
         </div>
-        <div id="contactList" style="overflow-y: auto;"></div>
+        <div id="contactList" style="flex: 1; overflow-y: auto;"></div>
     </div>
 
-    <div class="chat-area" id="chatArea">
-        <div class="header">
-            <span class="back-btn" onclick="closeChat()">←</span>
-            <div class="avatar" id="activeAvatar">?</div>
-            <div style="flex: 1;">
-                <b id="activeName">Pilih Kontak</b><br>
-                <small id="statusLine" style="font-size:11px; color:var(--text-dim);">Offline</small>
-            </div>
-            <div style="display:flex; gap:15px; font-size:20px; cursor:pointer;">
-                <span onclick="startCall(false)">📞</span>
-                <span onclick="startCall(true)">📹</span>
-            </div>
+    <div class="chat-main" id="chatMain">
+        <div id="noChatSelected" style="margin: auto; text-align: center; color: var(--wa-dim);">
+            <h2>DARSAP  Chat</h2>
+            <p>Pilih kontak atau tambahkan teman dengan ID mereka.</p>
         </div>
 
-        <div class="msg-container" id="msgContainer">
-            <div style="margin: auto; text-align: center; color: var(--text-dim);">
-                <p>Klik kontak untuk memulai chat ❤️</p>
+        <div id="activeChatUI" class="active-chat" style="display: none; flex-direction: column; height: 100%;">
+            <div class="header">
+                <span onclick="goBack()" style="cursor:pointer; display:none;" class="mobile-only">⬅️</span>
+                <div class="avatar" id="headerAvatar">?</div>
+                <div style="flex: 1;">
+                    <b id="headerName">...</b><br>
+                    <small id="headerStatus">offline</small>
+                </div>
+                <div class="chat-header-btns">
+                    <span title="Voice Call" onclick="startCall(false)">📞</span>
+                    <span title="Video Call" onclick="startCall(true)">📹</span>
+                </div>
             </div>
-        </div>
 
-        <form class="input-bar" id="chatForm">
-            <input type="text" id="msgInput" placeholder="Ketik pesan..." autocomplete="off">
-            <button type="submit" style="background:none; border:none; color:var(--wa-green); font-size:25px;">➤</button>
-        </form>
+            <div class="messages" id="messageList"></div>
+
+            <form class="input-bar" id="chatForm">
+                <input type="text" id="msgInput" placeholder="Ketik pesan..." autocomplete="off">
+                <button type="submit" style="background:none; border:none; color:var(--wa-green); font-size:25px; cursor:pointer;">➤</button>
+            </form>
+        </div>
     </div>
 </div>
 
-<div id="callOverlay">
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3>Tambah Teman Baru</h3>
+        <input type="text" id="friendName" placeholder="Nama Panggilan">
+        <input type="text" id="friendId" placeholder="Masukkan ID PeerJS Teman">
+        <div class="modal-btns">
+            <button onclick="toggleModal(false)" style="background: #3b4a54; color: white;">Batal</button>
+            <button onclick="saveFriend()" style="background: var(--wa-green); color: white;">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div id="callUI">
+    <div id="callInfo" style="position: absolute; top: 50px; text-align: center; z-index: 1200;">
+        <h2 id="callingUser">Memanggil...</h2>
+        <span id="callType">Voice Call</span>
+    </div>
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
-    <div class="controls">
-        <button class="btn-round" style="background:#3b4a54" onclick="toggleMute()">🎙️</button>
-        <button class="btn-round" style="background:#ff3b30" onclick="endCall()">❌</button>
+    <div class="call-actions">
+        <button class="btn-call" style="background: #3b4a54;" onclick="toggleMute()">🎙️</button>
+        <button class="btn-call" style="background: #ff3b30;" onclick="endCall()">❌</button>
     </div>
 </div>
 
 <audio id="ringtone" src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg" loop></audio>
 
 <script>
-    let peer, myID, activeFriendId;
+    let peer, myID, activeContact;
     let connections = {};
-    let currentCall = null, localStream = null;
+    let currentCall = null;
+    let localStream = null;
 
-    // Database Sederhana
-    let contacts = JSON.parse(localStorage.getItem('wa_hp_contacts') || '[]');
-    let history = JSON.parse(localStorage.getItem('wa_hp_history') || '{}');
+    let contacts = JSON.parse(localStorage.getItem('darsap_contacts_v2') || '[]');
+    let chatHistory = JSON.parse(localStorage.getItem('darsap_history_v2') || '{}');
 
+    // --- SETUP PEER ---
     window.onload = () => {
-        myID = localStorage.getItem('my_wa_id') || prompt("Masukkan ID kamu:");
-        if(!myID) return location.reload();
-        localStorage.setItem('my_wa_id', myID);
-        initPeer();
-        renderContacts();
-    };
-
-    function initPeer() {
+        myID = localStorage.getItem('my_wa_id') || Math.random().toString(36).substr(2, 6);
+        if(!localStorage.getItem('my_wa_id')) {
+            let input = prompt("Buat ID kamu (contoh: andi77):", myID);
+            myID = input || myID;
+            localStorage.setItem('my_wa_id', myID);
+        }
+        
         peer = new Peer(myID);
-        peer.on('open', id => document.getElementById('myIdText').innerText = "ID: " + id);
-        peer.on('connection', conn => setupChat(conn));
+        peer.on('open', id => document.getElementById('myIdDisplay').innerText = "ID SAYA: " + id);
+        
+        // Terima Pesan
+        peer.on('connection', conn => handleDataConnection(conn));
+
+        // Terima Telepon/VC
         peer.on('call', async call => {
-            if(confirm("Panggilan masuk! Terima?")) {
+            if(confirm("Panggilan Masuk dari " + call.peer + ". Terima?")) {
                 document.getElementById('ringtone').play();
-                await getMedia(true);
+                const isVideo = call.options.metadata?.video || false;
+                await getMedia(isVideo);
                 call.answer(localStream);
                 handleCall(call);
             }
         });
+
+        renderContacts();
+    };
+
+    // --- MANAJEMEN KONTAK & MODAL ---
+    function toggleModal(show) {
+        document.getElementById('modalOverlay').style.display = show ? 'flex' : 'none';
     }
 
-    function addFriend() {
-        const name = prompt("Nama:");
-        const id = prompt("ID Teman:");
+    function saveFriend() {
+        const name = document.getElementById('friendName').value;
+        const id = document.getElementById('friendId').value;
         if(name && id) {
-            contacts.push({name, id});
-            localStorage.setItem('wa_hp_contacts', JSON.stringify(contacts));
+            contacts.push({ name, id });
+            localStorage.setItem('darsap_contacts_v2', JSON.stringify(contacts));
             renderContacts();
+            toggleModal(false);
+            document.getElementById('friendName').value = '';
+            document.getElementById('friendId').value = '';
         }
     }
 
@@ -192,38 +205,38 @@
         contacts.forEach(c => {
             const el = document.createElement('div');
             el.className = "contact-item";
-            el.onclick = () => openChat(c);
-            el.innerHTML = `<div class="avatar" style="margin-right:15px">${c.name[0]}</div><b>${c.name}</b>`;
+            el.onclick = () => selectChat(c);
+            el.innerHTML = `<div class="avatar">${c.name[0]}</div><div><b>${c.name}</b><br><small style="color:var(--wa-dim)">ID: ${c.id}</small></div>`;
             list.appendChild(el);
         });
     }
 
-    function openChat(contact) {
-        activeFriendId = contact.id;
-        document.getElementById('chatArea').classList.add('active');
-        document.getElementById('activeName').innerText = contact.name;
-        document.getElementById('activeAvatar').innerText = contact.name[0];
+    // --- CHAT LOGIC ---
+    function selectChat(contact) {
+        activeContact = contact;
+        document.getElementById('noChatSelected').style.display = 'none';
+        document.getElementById('activeChatUI').style.display = 'flex';
+        document.getElementById('chatMain').classList.add('active'); // mobile view
+        document.getElementById('headerName').innerText = contact.name;
+        document.getElementById('headerAvatar').innerText = contact.name[0];
+        
         renderMessages();
 
-        if(!connections[contact.id] || !connections[contact.id].open) {
-            setupChat(peer.connect(contact.id));
-        } else {
-            updateStatus("Online", "var(--wa-green)");
+        // Buat koneksi data jika belum ada
+        if(!connections[contact.id]) {
+            const conn = peer.connect(contact.id);
+            handleDataConnection(conn);
         }
     }
 
-    function closeChat() {
-        document.getElementById('chatArea').classList.remove('active');
-    }
-
-    function setupChat(conn) {
+    function handleDataConnection(conn) {
         connections[conn.peer] = conn;
         conn.on('open', () => {
-            if(activeFriendId === conn.peer) updateStatus("Online", "var(--wa-green)");
+            if(activeContact?.id === conn.peer) document.getElementById('headerStatus').innerText = "Online";
         });
         conn.on('data', data => {
-            saveMsg(conn.peer, 'in', data);
-            if(activeFriendId === conn.peer) renderMessages();
+            saveMessage(conn.peer, 'in', data);
+            if(activeContact?.id === conn.peer) renderMessages();
         });
     }
 
@@ -231,47 +244,53 @@
         e.preventDefault();
         const input = document.getElementById('msgInput');
         const text = input.value.trim();
-        if(text && connections[activeFriendId]?.open) {
-            connections[activeFriendId].send(text);
-            saveMsg(activeFriendId, 'out', text);
+        if(!text || !activeContact) return;
+
+        const conn = connections[activeContact.id];
+        if(conn && conn.open) {
+            conn.send(text);
+            saveMessage(activeContact.id, 'out', text);
             renderMessages();
             input.value = "";
+        } else {
+            alert("Sedang menghubungkan ke teman...");
         }
     };
 
-    function saveMsg(id, type, text) {
-        if(!history[id]) history[id] = [];
-        history[id].push({type, text, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
-        localStorage.setItem('wa_hp_history', JSON.stringify(history));
+    function saveMessage(id, type, text) {
+        if(!chatHistory[id]) chatHistory[id] = [];
+        chatHistory[id].push({ type, text, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+        localStorage.setItem('darsap_history_v2', JSON.stringify(chatHistory));
     }
 
     function renderMessages() {
-        const container = document.getElementById('msgContainer');
-        container.innerHTML = "";
-        (history[activeFriendId] || []).forEach(m => {
-            const d = document.createElement('div');
-            d.className = `bubble ${m.type}`;
-            d.innerHTML = `${m.text} <div style="font-size:9px; opacity:0.5; text-align:right;">${m.time}</div>`;
-            container.appendChild(d);
+        const box = document.getElementById('messageList');
+        box.innerHTML = "";
+        (chatHistory[activeContact.id] || []).forEach(m => {
+            const div = document.createElement('div');
+            div.className = `msg ${m.type}`;
+            div.innerHTML = `${m.text} <span class="msg-time">${m.time}</span>`;
+            box.appendChild(div);
         });
-        container.scrollTop = container.scrollHeight;
+        box.scrollTop = box.scrollHeight;
     }
 
-    function updateStatus(txt, col) {
-        const s = document.getElementById('statusLine');
-        s.innerText = txt; s.style.color = col;
-    }
-
-    // --- CALL FUNCTIONS ---
-    async function getMedia(vid) {
-        localStream = await navigator.mediaDevices.getUserMedia({video: vid, audio: true});
+    // --- CALL / VC LOGIC ---
+    async function getMedia(video) {
+        localStream = await navigator.mediaDevices.getUserMedia({ video, audio: true });
         document.getElementById('localVideo').srcObject = localStream;
+        document.getElementById('localVideo').style.display = video ? 'block' : 'none';
     }
 
-    async function startCall(vid) {
-        await getMedia(vid);
-        document.getElementById('callOverlay').style.display = 'flex';
-        handleCall(peer.call(activeFriendId, localStream));
+    async function startCall(video) {
+        if(!activeContact) return;
+        await getMedia(video);
+        document.getElementById('callUI').style.display = 'flex';
+        document.getElementById('callingUser').innerText = activeContact.name;
+        document.getElementById('callType').innerText = video ? "Video Call" : "Voice Call";
+        
+        const call = peer.call(activeContact.id, localStream, { metadata: { video: video } });
+        handleCall(call);
     }
 
     function handleCall(call) {
@@ -286,10 +305,18 @@
     function endCall() {
         if(currentCall) currentCall.close();
         if(localStream) localStream.getTracks().forEach(t => t.stop());
-        document.getElementById('callOverlay').style.display = 'none';
+        document.getElementById('callUI').style.display = 'none';
         document.getElementById('ringtone').pause();
     }
-</script>
 
+    function toggleMute() {
+        const track = localStream.getAudioTracks()[0];
+        track.enabled = !track.enabled;
+    }
+
+    function goBack() {
+        document.getElementById('chatMain').classList.remove('active');
+    }
+</script>
 </body>
 </html>
