@@ -2,135 +2,39 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Love Video Call ❤️</title>
+  <title>DARSAP ❤️ Video Call</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-
   <style>
-    body {
-      margin:0;
-      padding:0;
-      background:#0b141a;
-      font-family: Arial, sans-serif;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-    }
-
-    .phone {
-      width:100%;
-      max-width:420px;
-      height:100vh;
-      background:black;
-      position:relative;
-      overflow:hidden;
-    }
-
-    .header {
-      height:60px;
-      background:#202c33;
-      color:white;
-      display:flex;
-      align-items:center;
-      padding:0 12px;
-      gap:10px;
-    }
-
-    .avatar {
-      width:36px;
-      height:36px;
-      border-radius:50%;
-      background:#25d366;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:bold;
-      color:white;
-    }
-
-    .name {
-      flex:1;
-    }
-
-    .video-area {
-      position:relative;
-      width:100%;
-      height:calc(100% - 120px);
-      background:black;
-    }
-
-    video {
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      background:black;
-    }
-
-    #localVideo {
-      position:absolute;
-      width:120px;
-      height:160px;
-      bottom:10px;
-      right:10px;
-      border-radius:12px;
-      border:2px solid white;
-      object-fit:cover;
-      background:black;
-    }
-
-    .controls {
-      height:60px;
-      background:#202c33;
-      display:flex;
-      align-items:center;
-      justify-content:space-around;
-    }
-
-    .btn {
-      width:44px;
-      height:44px;
-      border-radius:50%;
-      border:none;
-      font-size:18px;
-      cursor:pointer;
-    }
-
-    .btn-red { background:#ff3b30; color:white; }
-    .btn-green { background:#25d366; color:white; }
-    .btn-dark { background:#3b4a54; color:white; }
-
-    .connect-box {
-      position:absolute;
-      top:70px;
-      left:50%;
-      transform:translateX(-50%);
-      background:white;
-      padding:10px;
-      border-radius:12px;
-      width:90%;
-      text-align:center;
-    }
-
-    input {
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid #ccc;
-      width:80%;
-      margin-bottom:6px;
-    }
-
-    .hidden { display:none; }
+    body{margin:0;padding:0;background:#0b141a;font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .phone{width:100%;max-width:420px;height:100vh;background:black;position:relative;overflow:hidden}
+    .header{height:60px;background:#202c33;color:white;display:flex;align-items:center;padding:0 12px;gap:10px}
+    .avatar{width:36px;height:36px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;font-weight:bold;color:white}
+    .name{flex:1;font-weight:bold}
+    .id-badge{font-size:12px;opacity:.8}
+    .video-area{position:relative;width:100%;height:calc(100% - 120px);background:black}
+    video{width:100%;height:100%;object-fit:cover;background:black}
+    #localVideo{position:absolute;width:120px;height:160px;bottom:10px;right:10px;border-radius:12px;border:2px solid white;object-fit:cover;background:black}
+    .controls{height:60px;background:#202c33;display:flex;align-items:center;justify-content:space-around}
+    .btn{width:44px;height:44px;border-radius:50%;border:none;font-size:18px;cursor:pointer}
+    .btn-red{background:#ff3b30;color:white}
+    .btn-green{background:#25d366;color:white}
+    .btn-dark{background:#3b4a54;color:white}
+    .connect-box{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:white;padding:12px;border-radius:12px;width:90%;text-align:center;z-index:10}
+    input{padding:8px 10px;border-radius:10px;border:1px solid #ccc;width:90%;margin-bottom:6px}
+    .hidden{display:none}
+    .overlay-btns{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+    .overlay-btns button{background:#00000099;color:white;border:none;padding:8px;border-radius:50%;font-size:14px}
+    .status{position:absolute;bottom:8px;left:8px;color:white;font-size:12px;background:#00000066;padding:4px 8px;border-radius:8px}
   </style>
 </head>
 <body>
-
 <div class="phone">
-
   <!-- HEADER -->
   <div class="header">
-    <div class="avatar">❤️</div>
-    <div class="name" id="callName">Pasangan</div>
+    <div class="avatar">D</div>
+    <div class="name" id="callName">DARSAP</div>
+    <div class="id-badge" id="myIdBadge"></div>
   </div>
 
   <!-- VIDEO AREA -->
@@ -138,11 +42,24 @@
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
 
+    <!-- OVERLAY BUTTONS -->
+    <div class="overlay-btns">
+      <button id="switchCamBtn" title="Switch Camera">🔄</button>
+      <button id="beautyBtn" title="Beauty">✨</button>
+      <button id="shotBtn" title="Screenshot">📸</button>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status" id="statusText">Siap…</div>
+
     <!-- CONNECT BOX -->
     <div class="connect-box" id="connectBox">
-      <b>Love Video Call 💕</b><br><br>
-      <input id="roomIdInput" placeholder="Kode pasangan..."><br>
-      <button id="connectBtn" class="btn btn-green">📞</button>
+      <b>DARSAP ❤️ Video Call</b><br><br>
+      <input id="myIdInput" placeholder="ID kamu (bebas, contoh: darsap01)">
+      <input id="roomIdInput" placeholder="ID pasangan…"><br>
+      <button id="createBtn" class="btn btn-dark">Buat ID</button>
+      <button id="connectBtn" class="btn btn-green">📞 Hubungi</button>
+      <p style="font-size:12px;opacity:.8">*Buat ID dulu, lalu kirim ke pasangan</p>
     </div>
   </div>
 
@@ -151,104 +68,131 @@
     <button id="muteBtn" class="btn btn-dark">🎙️</button>
     <button id="endBtn" class="btn btn-red">❌</button>
   </div>
-
 </div>
 
+<audio id="ringtone" src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg"></audio>
+
 <script>
-/* =========================
-   SIMPLE ID
-========================= */
-function generateSimpleID() {
-  const name = prompt("Masukkan nama kamu (contoh: asip, ayang)");
-  const random = Math.floor(100 + Math.random() * 900);
-  return name + random;
-}
+let peer;
+let myID = '';
+let localStream;
+let currentCall;
+let isMuted = false;
+let useFrontCamera = true;
+let beautyOn = false;
 
-const myID = generateSimpleID();
-const peer = new Peer(myID);
-
-alert("Kode Cinta kamu: " + myID + " ❤️\nKirim ke pasangan kamu ya!");
-
-/* =========================
-   ELEMENTS
-========================= */
 const connectBtn = document.getElementById('connectBtn');
+const createBtn = document.getElementById('createBtn');
 const roomIdInput = document.getElementById('roomIdInput');
+const myIdInput = document.getElementById('myIdInput');
 const remoteVideo = document.getElementById('remoteVideo');
 const localVideo = document.getElementById('localVideo');
 const connectBox = document.getElementById('connectBox');
 const muteBtn = document.getElementById('muteBtn');
 const endBtn = document.getElementById('endBtn');
+const switchCamBtn = document.getElementById('switchCamBtn');
+const beautyBtn = document.getElementById('beautyBtn');
+const shotBtn = document.getElementById('shotBtn');
+const ringtone = document.getElementById('ringtone');
+const statusText = document.getElementById('statusText');
+const myIdBadge = document.getElementById('myIdBadge');
 
-let localStream;
-let currentCall;
-let isMuted = false;
+function setStatus(t){ statusText.textContent = t; }
 
-/* =========================
-   GET MEDIA (VIDEO + AUDIO)
-========================= */
-async function getMedia() {
+async function getMedia(){
   localStream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" },
+    video: { facingMode: useFrontCamera ? 'user' : 'environment' },
     audio: true
   });
   localVideo.srcObject = localStream;
 }
 
-/* =========================
-   PEER EVENTS
-========================= */
-peer.on('call', async call => {
-  await getMedia();
-  call.answer(localStream);
-
-  call.on('stream', remoteStream => {
-    remoteVideo.srcObject = remoteStream;
-    connectBox.classList.add('hidden');
+function initPeer(id){
+  peer = new Peer(id);
+  peer.on('open', pid => {
+    myID = pid;
+    myIdBadge.textContent = 'ID: ' + myID;
+    setStatus('ID siap');
+    alert('ID DARSAP kamu: ' + myID + '\nKirim ke pasangan ❤️');
   });
 
-  currentCall = call;
-});
+  peer.on('call', async call => {
+    ringtone.play();
+    setStatus('Panggilan masuk…');
+    await getMedia();
+    call.answer(localStream);
+    call.on('stream', remoteStream => {
+      remoteVideo.srcObject = remoteStream;
+      connectBox.classList.add('hidden');
+      ringtone.pause();
+      setStatus('Terhubung');
+    });
+    currentCall = call;
+  });
+}
 
-/* =========================
-   CONNECT BUTTON
-========================= */
+createBtn.onclick = () => {
+  const id = myIdInput.value.trim();
+  if(!id) return alert('Isi ID kamu dulu ya 😊');
+  if(peer) peer.destroy();
+  initPeer(id);
+};
+
 connectBtn.onclick = async () => {
   const remoteId = roomIdInput.value.trim();
-  if (!remoteId) return alert("Masukkan kode pasangan kamu 😘");
-
+  if(!peer) return alert('Buat ID kamu dulu');
+  if(!remoteId) return alert('Masukkan ID pasangan 😘');
   await getMedia();
-
+  setStatus('Menghubungi…');
   currentCall = peer.call(remoteId, localStream);
   currentCall.on('stream', remoteStream => {
     remoteVideo.srcObject = remoteStream;
     connectBox.classList.add('hidden');
+    setStatus('Terhubung');
   });
 };
 
-/* =========================
-   MUTE / UNMUTE
-========================= */
 muteBtn.onclick = () => {
-  if (!localStream) return;
-
+  if(!localStream) return;
   const audioTrack = localStream.getAudioTracks()[0];
   isMuted = !isMuted;
   audioTrack.enabled = !isMuted;
-  muteBtn.textContent = isMuted ? "🔇" : "🎙️";
+  muteBtn.textContent = isMuted ? '🔇' : '🎙️';
 };
 
-/* =========================
-   END CALL
-========================= */
 endBtn.onclick = () => {
-  if (currentCall) currentCall.close();
-  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  if(currentCall) currentCall.close();
+  if(localStream) localStream.getTracks().forEach(t => t.stop());
   remoteVideo.srcObject = null;
   localVideo.srcObject = null;
   connectBox.classList.remove('hidden');
+  setStatus('Panggilan berakhir');
+};
+
+switchCamBtn.onclick = async () => {
+  useFrontCamera = !useFrontCamera;
+  if(localStream) localStream.getTracks().forEach(t => t.stop());
+  await getMedia();
+};
+
+beautyBtn.onclick = () => {
+  beautyOn = !beautyOn;
+  localVideo.style.filter = beautyOn ? 'brightness(1.1) contrast(1.1) saturate(1.3) blur(0.6px)' : 'none';
+};
+
+shotBtn.onclick = () => {
+  if(!localVideo.srcObject) return alert('Kamera belum aktif');
+  const canvas = document.createElement('canvas');
+  canvas.width = localVideo.videoWidth;
+  canvas.height = localVideo.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(localVideo, 0, 0);
+  const img = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = img;
+  a.download = 'darsap-love.png';
+  a.click();
 };
 </script>
-
 </body>
 </html>
