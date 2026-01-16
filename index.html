@@ -2,115 +2,164 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Love Guess + Live Video ❤️</title>
+  <title>Love Video Call ❤️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      margin:0;
+      padding:0;
+      background:#0b141a;
+      font-family: Arial, sans-serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
     }
 
-    .app {
-      background: white;
-      width: 95%;
-      max-width: 420px;
-      border-radius: 20px;
-      padding: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      text-align: center;
+    .phone {
+      width:100%;
+      max-width:420px;
+      height:100vh;
+      background:black;
+      position:relative;
+      overflow:hidden;
     }
 
-    h1 { color: #ff4b5c; margin-bottom: 5px; }
-
-    button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 16px;
-      background: #ff4b5c;
-      color: white;
-      font-weight: bold;
-      margin: 4px;
-      cursor: pointer;
+    .header {
+      height:60px;
+      background:#202c33;
+      color:white;
+      display:flex;
+      align-items:center;
+      padding:0 12px;
+      gap:10px;
     }
 
-    input {
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-      width: 70%;
+    .avatar {
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      background:#25d366;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:bold;
+      color:white;
+    }
+
+    .name {
+      flex:1;
+    }
+
+    .video-area {
+      position:relative;
+      width:100%;
+      height:calc(100% - 120px);
+      background:black;
     }
 
     video {
-      width: 100%;
-      border-radius: 14px;
-      margin-top: 6px;
-      background: black;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      background:black;
     }
 
-    .box {
-      background: #fff0f3;
-      padding: 10px;
-      border-radius: 14px;
-      margin-top: 10px;
+    #localVideo {
+      position:absolute;
+      width:120px;
+      height:160px;
+      bottom:10px;
+      right:10px;
+      border-radius:12px;
+      border:2px solid white;
+      object-fit:cover;
+      background:black;
     }
 
-    #chatMessages {
-      height: 120px;
-      overflow-y: auto;
-      background: white;
-      border-radius: 10px;
-      padding: 6px;
-      margin-bottom: 6px;
-      font-size: 14px;
-      text-align: left;
+    .controls {
+      height:60px;
+      background:#202c33;
+      display:flex;
+      align-items:center;
+      justify-content:space-around;
     }
+
+    .btn {
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      border:none;
+      font-size:18px;
+      cursor:pointer;
+    }
+
+    .btn-red { background:#ff3b30; color:white; }
+    .btn-green { background:#25d366; color:white; }
+    .btn-dark { background:#3b4a54; color:white; }
+
+    .connect-box {
+      position:absolute;
+      top:70px;
+      left:50%;
+      transform:translateX(-50%);
+      background:white;
+      padding:10px;
+      border-radius:12px;
+      width:90%;
+      text-align:center;
+    }
+
+    input {
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      width:80%;
+      margin-bottom:6px;
+    }
+
+    .hidden { display:none; }
   </style>
 </head>
 <body>
 
-<div class="app">
+<div class="phone">
 
-  <h1>💖 Love Connect 💖</h1>
-  <p>Game + Kamera + Chat Bucin 😘</p>
-
-  <!-- CAMERA LOCAL -->
-  <button id="cameraBtn">Buka Kamera 📷</button>
-  <button id="closeCameraBtn" style="display:none;background:#333;">Tutup Kamera</button>
-  <video id="localVideo" autoplay playsinline></video>
-
-  <!-- LIVE CONNECT -->
-  <div class="box">
-    <b>Live Video & Chat 💕</b><br><br>
-    <input id="roomIdInput" placeholder="Kode pasangan..."><br>
-    <button id="connectBtn">Connect ❤️</button>
-    <video id="remoteVideo" autoplay playsinline style="display:none;"></video>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="avatar">❤️</div>
+    <div class="name" id="callName">Pasangan</div>
   </div>
 
-  <!-- CHAT -->
-  <div class="box">
-    <div id="chatMessages"></div>
-    <input id="chatInput" placeholder="Ketik pesan...">
-    <button id="sendChatBtn">Kirim</button><br>
-    <button id="kangenBtn">Aku kangen 🥺</button>
-    <button id="loveBtn">I Love You ❤️</button>
+  <!-- VIDEO AREA -->
+  <div class="video-area">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline muted></video>
+
+    <!-- CONNECT BOX -->
+    <div class="connect-box" id="connectBox">
+      <b>Love Video Call 💕</b><br><br>
+      <input id="roomIdInput" placeholder="Kode pasangan..."><br>
+      <button id="connectBtn" class="btn btn-green">📞</button>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button id="muteBtn" class="btn btn-dark">🎙️</button>
+    <button id="endBtn" class="btn btn-red">❌</button>
   </div>
 
 </div>
 
 <script>
 /* =========================
-   SIMPLE ID GENERATOR
+   SIMPLE ID
 ========================= */
 function generateSimpleID() {
-  const name = prompt("Masukkan nama panggilan kamu (contoh: asip, ayang, cinta)");
+  const name = prompt("Masukkan nama kamu (contoh: asip, ayang)");
   const random = Math.floor(100 + Math.random() * 900);
   return name + random;
 }
@@ -123,119 +172,81 @@ alert("Kode Cinta kamu: " + myID + " ❤️\nKirim ke pasangan kamu ya!");
 /* =========================
    ELEMENTS
 ========================= */
-const cameraBtn = document.getElementById('cameraBtn');
-const closeCameraBtn = document.getElementById('closeCameraBtn');
-const localVideo = document.getElementById('localVideo');
-
 const connectBtn = document.getElementById('connectBtn');
 const roomIdInput = document.getElementById('roomIdInput');
 const remoteVideo = document.getElementById('remoteVideo');
+const localVideo = document.getElementById('localVideo');
+const connectBox = document.getElementById('connectBox');
+const muteBtn = document.getElementById('muteBtn');
+const endBtn = document.getElementById('endBtn');
 
-const chatMessages = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const sendChatBtn = document.getElementById('sendChatBtn');
-const kangenBtn = document.getElementById('kangenBtn');
-const loveBtn = document.getElementById('loveBtn');
-
-/* =========================
-   CAMERA LOCAL
-========================= */
 let localStream;
-
-cameraBtn.onclick = async () => {
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    localVideo.srcObject = localStream;
-    cameraBtn.style.display = "none";
-    closeCameraBtn.style.display = "inline-block";
-  } catch (e) {
-    alert("Izin kamera ditolak 😢");
-  }
-};
-
-closeCameraBtn.onclick = () => {
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-  }
-  localVideo.srcObject = null;
-  cameraBtn.style.display = "inline-block";
-  closeCameraBtn.style.display = "none";
-};
+let currentCall;
+let isMuted = false;
 
 /* =========================
-   CHAT + VIDEO
+   GET MEDIA (VIDEO + AUDIO)
 ========================= */
-let dataConn;
-let currentCall;
-
-function addMessage(msg, from) {
-  const div = document.createElement('div');
-  div.textContent = (from === 'me' ? 'Aku: ' : 'Dia: ') + msg;
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+async function getMedia() {
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: true
+  });
+  localVideo.srcObject = localStream;
 }
 
-peer.on('connection', conn => {
-  dataConn = conn;
-  dataConn.on('data', data => addMessage(data, 'other'));
-});
+/* =========================
+   PEER EVENTS
+========================= */
+peer.on('call', async call => {
+  await getMedia();
+  call.answer(localStream);
 
-peer.on('call', call => {
-  navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
-    call.answer(stream);
-    call.on('stream', remoteStream => {
-      remoteVideo.srcObject = remoteStream;
-      remoteVideo.style.display = 'block';
-    });
+  call.on('stream', remoteStream => {
+    remoteVideo.srcObject = remoteStream;
+    connectBox.classList.add('hidden');
   });
+
+  currentCall = call;
 });
 
 /* =========================
    CONNECT BUTTON
 ========================= */
-connectBtn.onclick = () => {
+connectBtn.onclick = async () => {
   const remoteId = roomIdInput.value.trim();
+  if (!remoteId) return alert("Masukkan kode pasangan kamu 😘");
 
-  if (!remoteId) {
-    alert("Masukkan kode pasangan kamu 😘");
-    return;
-  }
+  await getMedia();
 
-  // CHAT
-  dataConn = peer.connect(remoteId);
-  dataConn.on('open', () => addMessage("Berhasil terhubung ❤️", "me"));
-  dataConn.on('data', data => addMessage(data, "other"));
-
-  // VIDEO
-  navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
-    currentCall = peer.call(remoteId, stream);
-    currentCall.on('stream', remoteStream => {
-      remoteVideo.srcObject = remoteStream;
-      remoteVideo.style.display = 'block';
-    });
+  currentCall = peer.call(remoteId, localStream);
+  currentCall.on('stream', remoteStream => {
+    remoteVideo.srcObject = remoteStream;
+    connectBox.classList.add('hidden');
   });
 };
 
 /* =========================
-   CHAT BUTTONS
+   MUTE / UNMUTE
 ========================= */
-sendChatBtn.onclick = () => {
-  if (!dataConn || !chatInput.value) return;
-  dataConn.send(chatInput.value);
-  addMessage(chatInput.value, 'me');
-  chatInput.value = '';
+muteBtn.onclick = () => {
+  if (!localStream) return;
+
+  const audioTrack = localStream.getAudioTracks()[0];
+  isMuted = !isMuted;
+  audioTrack.enabled = !isMuted;
+  muteBtn.textContent = isMuted ? "🔇" : "🎙️";
 };
 
-kangenBtn.onclick = () => {
-  if (!dataConn) return;
-  dataConn.send("Aku kangen kamu 🥺");
-  addMessage("Aku kangen kamu 🥺", "me");
-};
-
-loveBtn.onclick = () => {
-  if (!dataConn) return;
-  dataConn.send("I Love You ❤️");
-  addMessage("I Love You ❤️", "me");
+/* =========================
+   END CALL
+========================= */
+endBtn.onclick = () => {
+  if (currentCall) currentCall.close();
+  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  remoteVideo.srcObject = null;
+  localVideo.srcObject = null;
+  connectBox.classList.remove('hidden');
 };
 </script>
 
