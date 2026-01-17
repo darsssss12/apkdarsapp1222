@@ -3,64 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DARSAP v11 - Realtime Status</title>
+    <title>DARSAP v12 - Dreamy Edition</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --wa-green: #008069; --wa-bg: #efeae2; --white: #ffffff;
-            --gray: #667781; --msg-out: #d9fdd3; --blue-check: #53bdeb;
+            --bg-gradient: linear-gradient(135deg, #fceaf7 0%, #e8f0ff 100%);
+            --accent-pink: #ff85a1;
+            --accent-blue: #70a1ff;
+            --glass-white: rgba(255, 255, 255, 0.7);
+            --text-main: #4a4a4a;
+            --soft-shadow: 0 8px 32px 0 rgba(173, 181, 255, 0.2);
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden; background: #f0f2f5; }
+        * { box-sizing: border-box; font-family: 'Quicksand', sans-serif; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100dvh; 
+            overflow: hidden; background: var(--bg-gradient); 
+        }
 
         .app-container { display: flex; width: 100%; height: 100%; position: relative; }
 
-        /* SIDEBAR & CHAT */
-        .sidebar { width: 100%; height: 100%; background: var(--white); display: flex; flex-direction: column; z-index: 10; }
+        /* --- SIDEBAR (Daftar Kontak) --- */
+        .sidebar { 
+            width: 100%; height: 100%; display: flex; flex-direction: column;
+            background: transparent; z-index: 10; padding: 10px;
+        }
+
+        /* --- HEADER ESTETIK --- */
+        .header { 
+            height: 70px; background: var(--glass-white); 
+            backdrop-filter: blur(10px); border-radius: 20px;
+            margin-bottom: 15px; display: flex; align-items: center; 
+            padding: 0 15px; border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: var(--soft-shadow);
+        }
+
+        .avatar { 
+            width: 45px; height: 45px; border-radius: 18px; 
+            background: white; overflow: hidden; border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- LIST KONTAK --- */
+        .contact-list { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .contact-item { 
+            background: var(--glass-white); margin-bottom: 10px;
+            padding: 15px; border-radius: 20px; display: flex; 
+            align-items: center; gap: 15px; transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .contact-item:active { transform: scale(0.97); background: white; }
+
+        /* --- CHAT PANEL --- */
         .chat-panel { 
             position: absolute; top: 0; left: 100%; width: 100%; height: 100%;
-            background: var(--wa-bg); display: flex; flex-direction: column;
-            transition: transform 0.3s ease; z-index: 20;
+            background: var(--bg-gradient); display: flex; flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            z-index: 20; padding: 10px;
         }
         .chat-panel.active { transform: translateX(-100%); }
 
         @media (min-width: 768px) {
-            .sidebar { width: 30%; min-width: 350px; border-right: 1px solid #ddd; }
+            .sidebar { width: 350px; }
             .chat-panel { position: relative; left: 0; flex: 1; transform: none !important; }
         }
 
-        /* STATUS DOT */
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 5px; }
-        .online { background: #25d366; box-shadow: 0 0 5px #25d366; }
-        .offline { background: #bbb; }
+        /* --- BUBBLE CHAT LUCU --- */
+        .message-box { 
+            flex: 1; overflow-y: auto; padding: 10px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .bubble { 
+            max-width: 75%; padding: 12px 18px; border-radius: 25px; 
+            font-size: 15px; line-height: 1.5; color: var(--text-main);
+            position: relative; animation: pop 0.3s ease-out;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* HEADER */
-        .header { height: 60px; background: #f0f2f5; padding: 0 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #ccc; overflow: hidden; flex-shrink: 0; cursor: pointer; }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .bubble.sent { 
+            background: linear-gradient(135deg, var(--accent-pink), #ff9eb5);
+            color: white; align-self: flex-end; border-bottom-right-radius: 5px;
+        }
+        .bubble.received { 
+            background: white; align-self: flex-start; border-bottom-left-radius: 5px;
+        }
 
-        /* MESSAGES & CHECKS */
-        .message-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        .bubble { max-width: 85%; padding: 8px 12px; border-radius: 10px; font-size: 15px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); position: relative; }
-        .bubble.sent { background: var(--msg-out); align-self: flex-end; border-top-right-radius: 0; }
-        .bubble.received { background: #fff; align-self: flex-start; border-top-left-radius: 0; }
-        
-        .msg-meta { display: flex; justify-content: flex-end; align-items: center; gap: 3px; margin-top: 4px; font-size: 10px; color: var(--gray); }
-        .check-mark { font-weight: bold; font-size: 12px; }
-        .check-read { color: var(--blue-check); }
+        /* --- INPUT BAR --- */
+        .input-bar { 
+            background: var(--glass-white); backdrop-filter: blur(10px);
+            padding: 12px; border-radius: 25px; display: flex; 
+            align-items: center; gap: 10px; box-shadow: var(--soft-shadow);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        .input-bar input { 
+            flex: 1; border: none; background: transparent; 
+            padding: 10px; outline: none; font-size: 16px; color: var(--text-main);
+        }
+        .btn-send { 
+            background: var(--accent-blue); color: white; border: none;
+            width: 45px; height: 45px; border-radius: 15px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(112, 161, 255, 0.4);
+        }
 
-        /* INPUT AREA */
-        .input-bar { background: #f0f2f5; padding: 10px; display: flex; align-items: center; gap: 8px; }
-        .input-bar input { flex: 1; border: none; padding: 12px 18px; border-radius: 25px; outline: none; }
-        .btn-circle { width: 45px; height: 45px; border-radius: 50%; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* --- STATUS LOGO --- */
+        .status-badge {
+            font-size: 9px; padding: 3px 8px; border-radius: 10px;
+            margin-left: 8px; text-transform: uppercase; font-weight: bold;
+        }
+        .online-tag { background: #dff9fb; color: #009432; }
+        .offline-tag { background: #f1f2f6; color: #747d8c; }
 
-        /* MODALS */
-        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
-        .modal { background: white; width: 90%; max-width: 350px; padding: 25px; border-radius: 15px; }
-        .modal input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        /* --- MODALS --- */
+        .modal-bg {
+            position: fixed; inset: 0; background: rgba(112, 161, 255, 0.2);
+            backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal { 
+            background: white; width: 90%; max-width: 340px; padding: 25px; 
+            border-radius: 30px; border: 4px solid #fceaf7;
+        }
+        .modal input { 
+            width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #f1f2f6;
+            border-radius: 15px; outline: none; font-size: 15px;
+        }
 
-        .fab { position: absolute; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #25d366; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 15; }
+        .fab {
+            position: absolute; bottom: 25px; right: 25px;
+            width: 60px; height: 60px; border-radius: 22px;
+            background: var(--accent-pink); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; box-shadow: 0 10px 20px rgba(255, 133, 161, 0.4);
+            z-index: 15; border: 3px solid white;
+        }
+
+        .check-icon { font-size: 11px; margin-left: 5px; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -68,9 +147,11 @@
 <div class="app-container">
     <div class="sidebar">
         <div class="header">
-            <div class="avatar" onclick="openProfile()"><img id="myPhoto" src="https://via.placeholder.com/40"></div>
-            <div style="flex:1"><b>Darsap</b> <span class="status-dot online"></span></div>
-            <small id="myIdDisplay"></small>
+            <div class="avatar" onclick="openProfile()"><img id="myPhoto" src="https://via.placeholder.com/45"></div>
+            <div style="margin-left: 12px; flex: 1;">
+                <div style="font-weight: 700; color: var(--text-main);" id="myName">My Profile</div>
+                <div style="font-size: 10px; color: var(--accent-blue);" id="myIdText"></div>
+            </div>
         </div>
         <div class="contact-list" id="contactList"></div>
         <div class="fab" onclick="openAdd()">+</div>
@@ -78,86 +159,82 @@
 
     <div class="chat-panel" id="chatPanel">
         <div class="header">
-            <div onclick="closeChat()" style="font-size: 24px; cursor: pointer;">←</div>
+            <div onclick="closeChat()" style="font-size: 24px; cursor: pointer; color: var(--accent-pink); margin-right: 10px;">✿</div>
             <div class="avatar" id="activeAvatar"></div>
-            <div style="flex:1">
-                <b id="activeName">Nama</b>
-                <span id="activeStatusDot" class="status-dot"></span>
-            </div>
-            <div style="display: flex; gap: 15px; color: var(--wa-green); font-size: 18px;">
-                <span onclick="alert('Panggilan Suara...')">📞</span>
-                <span onclick="alert('Video Call...')">📹</span>
+            <div style="margin-left: 12px; flex: 1;">
+                <b id="activeName" style="color: var(--text-main);">Friend</b>
+                <span id="activeStatusTag"></span>
             </div>
         </div>
         <div class="message-box" id="msgBox"></div>
         <form class="input-bar" onsubmit="sendText(event)">
-            <input type="text" id="chatInp" placeholder="Ketik pesan..." autocomplete="off">
-            <button type="submit" class="btn-circle" style="background:var(--wa-green)">➤</button>
+            <input type="text" id="chatInp" placeholder="Tulis sesuatu yang manis..." autocomplete="off">
+            <button type="submit" class="btn-send">❤</button>
         </form>
     </div>
 </div>
 
 <div class="modal-bg" id="profileModal">
     <div class="modal">
-        <h3>Edit Profil</h3>
-        <center><div class="avatar" style="width:70px;height:70px" onclick="document.getElementById('pInp').click()"><img id="pPrev" src=""></div></center>
-        <input type="file" id="pInp" hidden onchange="previewImg(this)">
-        <input type="text" id="editName" placeholder="Nama Kamu">
-        <button onclick="saveProfile()" style="width:100%; padding:12px; background:var(--wa-green); color:white; border:none; border-radius:8px;">SIMPAN</button>
-        <button onclick="closeModals()" style="width:100%; margin-top:5px; background:none; border:none;">Batal</button>
+        <h3 style="text-align:center; color: var(--accent-pink);">Hai, Cantik!</h3>
+        <center>
+            <div class="avatar" style="width:90px; height:90px; border-radius: 30px;" onclick="document.getElementById('pInp').click()">
+                <img id="pPrev" src="">
+            </div>
+            <input type="file" id="pInp" hidden onchange="previewImg(this)">
+        </center>
+        <input type="text" id="editName" placeholder="Ganti Nama">
+        <button onclick="saveProfile()" style="width:100%; padding:15px; background:var(--accent-pink); color:white; border:none; border-radius:15px; font-weight:700;">UPDATE PROFIL</button>
+        <button onclick="closeModals()" style="width:100%; background:none; border:none; color:#ccc; margin-top:10px;">Nanti Saja</button>
     </div>
 </div>
 
 <div class="modal-bg" id="addModal">
     <div class="modal">
-        <h3>Tambah Teman</h3>
-        <input type="text" id="addName" placeholder="Nama">
-        <input type="text" id="addId" placeholder="ID Peer">
-        <button onclick="confirmAdd()" style="width:100%; padding:12px; background:var(--wa-green); color:white; border:none; border-radius:8px;">TAMBAH</button>
+        <h3 style="color: var(--accent-blue);">Tambah Teman</h3>
+        <input type="text" id="addName" placeholder="Nama Panggilan">
+        <input type="text" id="addId" placeholder="ID Peer Mereka">
+        <button onclick="confirmAdd()" style="width:100%; padding:15px; background:var(--accent-blue); color:white; border:none; border-radius:15px; font-weight:700;">TAMBAHKAN</button>
     </div>
 </div>
 
 <script>
     let peer, myID, activeFriend;
     let connections = {};
-    let contacts = JSON.parse(localStorage.getItem('d_v11_c') || '[]');
-    let history = JSON.parse(localStorage.getItem('d_v11_h') || '{}');
-    let myProf = JSON.parse(localStorage.getItem('d_v11_p') || '{"name":"User","photo":""}');
+    let contacts = JSON.parse(localStorage.getItem('d_v12_c') || '[]');
+    let history = JSON.parse(localStorage.getItem('d_v12_h') || '{}');
+    let myProf = JSON.parse(localStorage.getItem('d_v12_p') || '{"name":"Happy User","photo":""}');
 
     window.onload = () => {
-        myID = localStorage.getItem('d_v11_id') || Math.random().toString(36).substr(2, 6);
-        localStorage.setItem('d_v11_id', myID);
-        document.getElementById('myIdDisplay').innerText = "ID: " + myID;
+        myID = localStorage.getItem('d_v12_id') || Math.random().toString(36).substr(2, 6);
+        localStorage.setItem('d_v12_id', myID);
+        document.getElementById('myIdText').innerText = "ID: " + myID;
         
         peer = new Peer(myID);
         peer.on('connection', conn => setupConn(conn));
         
-        // Cek status teman setiap 5 detik
-        setInterval(checkOnlineStatus, 5000);
-        
-        refreshMyUI();
+        setInterval(refreshStatus, 4000);
+        updateMyUI();
         renderContacts();
     };
 
     function setupConn(conn) {
         connections[conn.peer] = conn;
         if(!contacts.find(c => c.id === conn.peer)) {
-            contacts.push({id: conn.peer, name: "Baru: "+conn.peer, photo: "", online: true});
-            localStorage.setItem('d_v11_c', JSON.stringify(contacts));
-            renderContacts();
+            contacts.push({id: conn.peer, name: "New Friend", photo: "", online: true});
+            saveContacts();
         }
 
         conn.on('data', data => {
             if(data.type === 'sync') {
-                updateFriendInfo(conn.peer, data);
-            } else if(data.type === 'read-notif') {
-                // Teman memberi tahu bahwa mereka sudah membaca pesan kita
-                markAsRead(conn.peer, data.msgIds);
+                let f = contacts.find(c => c.id === conn.peer);
+                if(f) { f.name = data.name; f.photo = data.photo; saveContacts(); renderContacts(); }
+            } else if(data.type === 'read') {
+                updateReadStatus(conn.peer, data.ids);
             } else {
                 saveMsg(conn.peer, 'received', data.content, data.id);
-                // Jika kita sedang buka chat mereka, kirim balik notif "SUDAH DIBACA"
                 if(activeFriend?.id === conn.peer) {
-                    conn.send({type: 'read-notif', msgIds: [data.id]});
+                    conn.send({type: 'read', ids: [data.id]});
                     renderMessages();
                 }
             }
@@ -165,29 +242,8 @@
         
         conn.on('open', () => {
             conn.send({type:'sync', name: myProf.name, photo: myProf.photo});
-            setFriendStatus(conn.peer, true);
+            refreshStatus();
         });
-
-        conn.on('close', () => setFriendStatus(conn.peer, false));
-    }
-
-    function checkOnlineStatus() {
-        contacts.forEach(c => {
-            const isConn = connections[c.id] && connections[c.id].open;
-            setFriendStatus(c.id, !!isConn);
-        });
-    }
-
-    function setFriendStatus(id, isOnline) {
-        let f = contacts.find(c => c.id === id);
-        if(f) {
-            f.online = isOnline;
-            renderContacts();
-            if(activeFriend?.id === id) {
-                const dot = document.getElementById('activeStatusDot');
-                dot.className = 'status-dot ' + (isOnline ? 'online' : 'offline');
-            }
-        }
     }
 
     function sendText(e) {
@@ -198,14 +254,11 @@
             const content = inp.value;
             const isOnline = connections[activeFriend.id]?.open;
             
-            // Centang 1 = Offline, Centang 2 = Online
-            const status = isOnline ? 'delivered' : 'sent';
-            
             if(isOnline) {
                 connections[activeFriend.id].send({type:'text', content, id: msgId});
             }
             
-            saveMsg(activeFriend.id, 'sent', content, msgId, status);
+            saveMsg(activeFriend.id, 'sent', content, msgId, isOnline ? 'delivered' : 'sent');
             renderMessages();
             inp.value = "";
         }
@@ -214,16 +267,14 @@
     function saveMsg(id, dir, content, msgId, status = 'sent') {
         if(!history[id]) history[id] = [];
         history[id].push({id: msgId, dir, content, status, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
-        localStorage.setItem('d_v11_h', JSON.stringify(history));
+        localStorage.setItem('d_v12_h', JSON.stringify(history));
         renderContacts();
     }
 
-    function markAsRead(friendId, msgIds) {
+    function updateReadStatus(friendId, ids) {
         if(history[friendId]) {
-            history[friendId].forEach(m => {
-                if(msgIds.includes(m.id)) m.status = 'read';
-            });
-            localStorage.setItem('d_v11_h', JSON.stringify(history));
+            history[friendId].forEach(m => { if(ids.includes(m.id)) m.status = 'read'; });
+            localStorage.setItem('d_v12_h', JSON.stringify(history));
             if(activeFriend?.id === friendId) renderMessages();
         }
     }
@@ -233,79 +284,97 @@
         box.innerHTML = "";
         const msgs = history[activeFriend.id] || [];
         
-        // Saat buka chat, kirim notif "Read" untuk semua pesan received yang belum dibaca
-        const unreadIds = msgs.filter(m => m.dir === 'received' && m.status !== 'read').map(m => m.id);
-        if(unreadIds.length > 0 && connections[activeFriend.id]?.open) {
-            connections[activeFriend.id].send({type: 'read-notif', msgIds: unreadIds});
-            msgs.forEach(m => { if(unreadIds.includes(m.id)) m.status = 'read'; });
-            localStorage.setItem('d_v11_h', JSON.stringify(history));
+        // Auto-read logic
+        const unread = msgs.filter(m => m.dir === 'received' && m.status !== 'read').map(m => m.id);
+        if(unread.length > 0 && connections[activeFriend.id]?.open) {
+            connections[activeFriend.id].send({type: 'read', ids: unread});
+            msgs.forEach(m => { if(unread.includes(m.id)) m.status = 'read'; });
+            localStorage.setItem('d_v12_h', JSON.stringify(history));
         }
 
         msgs.forEach(m => {
             let check = "";
             if(m.dir === 'sent') {
-                if(m.status === 'sent') check = "✓";
-                else if(m.status === 'delivered') check = "✓✓";
-                else if(m.status === 'read') check = "<span class='check-read'>✓✓</span>";
+                if(m.status === 'sent') check = "✿";
+                else if(m.status === 'delivered') check = "✿✿";
+                else if(m.status === 'read') check = "<span style='color:white;'>✿✿</span>";
             }
             box.innerHTML += `
                 <div class="bubble ${m.dir}">
                     ${m.content}
-                    <div class="msg-meta">${m.time} <span class="check-mark">${check}</span></div>
+                    <div style="font-size:9px; margin-top:5px; opacity:0.7; display:flex; justify-content:flex-end;">
+                        ${m.time} ${check}
+                    </div>
                 </div>`;
         });
         box.scrollTop = box.scrollHeight;
     }
 
-    // --- UI HELPERS ---
     function renderContacts() {
         const list = document.getElementById('contactList');
         list.innerHTML = "";
         contacts.forEach(c => {
             const h = history[c.id] || [];
-            const last = h.length > 0 ? h[h.length-1].content : "Klik untuk chat";
+            const last = h.length > 0 ? h[h.length-1].content : "Kirim salam...";
+            const tag = c.online ? '<span class="status-badge online-tag">Aktif</span>' : '<span class="status-badge offline-tag">Off</span>';
             list.innerHTML += `
                 <div class="contact-item" onclick="openChat('${c.id}')">
                     <div class="avatar">${c.photo ? `<img src="${c.photo}">` : ''}</div>
                     <div style="flex:1">
-                        <b>${c.name}</b> <span class="status-dot ${c.online?'online':'offline'}"></span>
-                        <p style="margin:0;font-size:12px;color:gray;">${last.substring(0,25)}</p>
+                        <div style="display:flex; align-items:center;"><b>${c.name}</b> ${tag}</div>
+                        <p style="margin:4px 0 0; font-size:12px; color:#888;">${last.substring(0,25)}</p>
                     </div>
                 </div>`;
         });
+    }
+
+    function refreshStatus() {
+        contacts.forEach(c => {
+            c.online = connections[c.id] && connections[c.id].open;
+        });
+        renderContacts();
+        if(activeFriend) {
+            const tag = document.getElementById('activeStatusTag');
+            const isOnline = contacts.find(c => c.id === activeFriend.id)?.online;
+            tag.innerHTML = isOnline ? '<span class="status-badge online-tag">Aktif</span>' : '<span class="status-badge offline-tag">Off</span>';
+        }
     }
 
     function openChat(id) {
         activeFriend = contacts.find(c => c.id === id);
         document.getElementById('activeName').innerText = activeFriend.name;
         document.getElementById('activeAvatar').innerHTML = activeFriend.photo ? `<img src="${activeFriend.photo}">` : '';
-        document.getElementById('activeStatusDot').className = 'status-dot ' + (activeFriend.online?'online':'offline');
         document.getElementById('chatPanel').classList.add('active');
         renderMessages();
         if(!connections[id]) setupConn(peer.connect(id));
     }
 
-    function refreshMyUI() {
-        document.getElementById('myPhoto').src = myProf.photo || 'https://via.placeholder.com/40';
+    function updateMyUI() {
+        document.getElementById('myPhoto').src = myProf.photo || 'https://via.placeholder.com/45';
+        document.getElementById('pPrev').src = myProf.photo || 'https://via.placeholder.com/45';
+        document.getElementById('myName').innerText = myProf.name;
         document.getElementById('editName').value = myProf.name;
     }
 
-    function openProfile() { document.getElementById('profileModal').style.display='flex'; document.getElementById('pPrev').src = myProf.photo; }
+    function openProfile() { document.getElementById('profileModal').style.display='flex'; }
+    function closeChat() { document.getElementById('chatPanel').classList.remove('active'); }
+    function openAdd() { document.getElementById('addModal').style.display='flex'; }
+    function closeModals() { document.querySelectorAll('.modal-bg').forEach(m => m.style.display='none'); }
+    function saveContacts() { localStorage.setItem('d_v12_c', JSON.stringify(contacts)); }
+    function previewImg(i){ if(i.files[0]){ let r=new FileReader(); r.onload=e=>document.getElementById('pPrev').src=e.target.result; r.readAsDataURL(i.files[0]); } }
+    
     function saveProfile() {
         myProf.name = document.getElementById('editName').value;
         myProf.photo = document.getElementById('pPrev').src;
-        localStorage.setItem('d_v11_p', JSON.stringify(myProf));
-        refreshMyUI(); closeModals();
+        localStorage.setItem('d_v12_p', JSON.stringify(myProf));
+        updateMyUI(); closeModals();
         Object.values(connections).forEach(c => c.open && c.send({type:'sync', name:myProf.name, photo:myProf.photo}));
     }
-    function previewImg(i){ if(i.files[0]){ let r=new FileReader(); r.onload=e=>document.getElementById('pPrev').src=e.target.result; r.readAsDataURL(i.files[0]); } }
-    function closeChat() { document.getElementById('chatPanel').classList.remove('active'); }
-    function openAdd() { document.getElementById('addModal').style.display='flex'; }
+
     function confirmAdd() {
         const n = document.getElementById('addName').value, i = document.getElementById('addId').value;
-        if(n && i) { contacts.push({id:i, name:n, photo:"", online:false}); localStorage.setItem('d_v11_c', JSON.stringify(contacts)); renderContacts(); closeModals(); }
+        if(n && i) { contacts.push({id:i, name:n, photo:"", online:false}); saveContacts(); renderContacts(); closeModals(); }
     }
-    function closeModals() { document.querySelectorAll('.modal-bg').forEach(m => m.style.display='none'); }
 </script>
 </body>
 </html>
